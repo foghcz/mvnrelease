@@ -17,7 +17,7 @@ The script is easily customizable to fit your project's needs.
 - git installed and available in PATH
 
 ## Setup your project
-- [ ] copy src/mvnrelease.java to your project root (pom.xml is expected at this location)
+- [ ] copy mvnrelease.java to your project root (pom.xml is expected at this location)
 - [ ] update `Configuration` section if the defaults doesn't fit your project
 - [ ] update `releaseBranchVersionFunction` which handles naming convention for release branches, by default it uses the format `release/major.minor`.
 - [ ] Add mvnrelease.java to your exclusions in sonar-project.properties file, to avoid false positives in SonarQube analysis.
