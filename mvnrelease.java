@@ -28,7 +28,7 @@ public class mvnrelease {
     private enum Configuration {
         APP_VERSION("1.0"),
         WORKING_DIR("./"),
-        COMMAND_MVN("mvn"),
+        COMMAND_MVN("mvn" + (System.getProperty("os.name").startsWith("Windows") ? ".cmd" : "")),
         COMMAND_MVN_ADDITIONAL_PARAMS(""), // additional parameters for mvn command, e.g. memory settings, it's parsed by spaces, do not use "" strings
         COMMAND_GIT("git"),
 
@@ -54,8 +54,6 @@ public class mvnrelease {
         }
     }
 
-    private static final String CONSOLE_SEPARATOR = "-----------------------------------------------";
-
     /**
      * This allows custom format of release branch version format
      */
@@ -65,6 +63,7 @@ public class mvnrelease {
      * Debug mode enabler.
      */
     private static boolean debugEnabled = false;
+    private static final String CONSOLE_SEPARATOR = "-----------------------------------------------";
 
     /**
      * Prints usage information for the script.
@@ -184,11 +183,12 @@ public class mvnrelease {
             // Start the process
             Process process = processBuilder.start();
 
-            if (printResult) {
-                // Read the output of the command
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
+            // Read the output of the command
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                // somehow on windows, the whole output must be read when executing batch script
+                while ((line = reader.readLine()) != null) {
+                    if (printResult) {
                         System.out.println(line);
                     }
                 }
@@ -196,7 +196,9 @@ public class mvnrelease {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println(line);
+                    if (printResult) {
+                        System.out.println(line);
+                    }
                 }
             }
 
@@ -330,7 +332,7 @@ public class mvnrelease {
                 }
             }
         } catch (NumberFormatException nfe) {
-                printWarning("Unable to parse version number, suggestion skipped", nfe);
+            printWarning("Unable to parse version number, suggestion skipped", nfe);
         }
         return "";
     }
@@ -580,11 +582,13 @@ public class mvnrelease {
         // ...params read
 
         // do the job
-        switch (operation) {
-            case RELEASE -> runRelease(newVersion, interactive);
-            case DEV     -> runDevelop(newVersion, interactive);
-            case BUGFIX  -> runBugfix(newVersion, interactive);
-            case VERSION -> runVersionUpdate(newVersion, interactive);
+        if (operation != null) {
+            switch (operation) {
+                case RELEASE -> runRelease(newVersion, interactive);
+                case DEV     -> runDevelop(newVersion, interactive);
+                case BUGFIX  -> runBugfix(newVersion, interactive);
+                case VERSION -> runVersionUpdate(newVersion, interactive);
+            }
         }
     }
 
